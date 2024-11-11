@@ -1,0 +1,87 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Home{% endblock title %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Tickets</h2>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Status Filter Buttons -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <a href="?status=ALL" class="btn btn-outline-primary {% if current_status == 'ALL' %}active{% endif %}">
+                    All
+                </a>
+                <a href="?status=NEW" class="btn btn-outline-primary {% if current_status == 'NEW' %}active{% endif %}">
+                    New
+                </a>
+                <a href="?status=IN_PROGRESS" class="btn btn-outline-warning {% if current_status == 'IN_PROGRESS' %}active{% endif %}">
+                    In Progress
+                </a>
+                <a href="?status=RESOLVED" class="btn btn-outline-success {% if current_status == 'RESOLVED' %}active{% endif %}">
+                    Resolved
+                </a>
+                <a href="?status=CLOSED" class="btn btn-outline-secondary {% if current_status == 'CLOSED' %}active{% endif %}">
+                    Closed
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if tickets %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Title</th>
+                    <th>Created By</th>
+                    <th>Assigned To</th>
+                    <th>Created At</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.id }}</td>
+                    <td>
+                        <a href="{% url 'ticket_detail' ticket.pk %}" class="text-decoration-none">
+                            {{ ticket.title }}
+                        </a>
+                    </td>
+                    <td>{{ ticket.creator.get_full_name|default:ticket.creator.username }}</td>
+                    <td>
+                        {% if ticket.assigned_engineer %}
+                            {{ ticket.assigned_engineer.get_full_name|default:ticket.assigned_engineer.username }}
+                        {% else %}
+                            <span class="badge bg-warning">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge bg-secondary">{{ ticket.get_status_display }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No tickets found.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

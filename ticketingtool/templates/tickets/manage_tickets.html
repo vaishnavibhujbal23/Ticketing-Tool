@@ -1,0 +1,95 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Admin {% endblock  %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Ticket Management</h2>
+    
+   
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Status Filter</label>
+                    <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                        <option value="ALL" {% if current_status == 'ALL' %}selected{% endif %}>All Statuses</option>
+                        {% for status_code, status_label in status_choices.items %}
+                        <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="assignment" class="form-label">Assignment Filter</label>
+                    <select name="assignment" id="assignment" class="form-select" onchange="this.form.submit()">
+                        <option value="" {% if not current_assignment %}selected{% endif %}>All Tickets</option>
+                        <option value="unassigned" {% if current_assignment == 'unassigned' %}selected{% endif %}>
+                            Unassigned Tickets
+                        </option>
+                        <option value="assigned" {% if current_assignment == 'assigned' %}selected{% endif %}>
+                            Assigned Tickets
+                        </option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if tickets %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Title</th>
+                    <th>Created By</th>
+                    <th>Assigned To</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.id }}</td>
+                    <td><a href="{% url 'ticket_detail' pk=ticket.pk %}">{{ ticket.title }}</a></td>
+                    <td>{{ ticket.creator.get_full_name|default:ticket.creator.username }}</td>
+                    <td>
+                        {% if ticket.assigned_engineer %}
+                            {{ ticket.assigned_engineer.get_full_name|default:ticket.assigned_engineer.username }}
+                        {% else %}
+                            <span class="badge bg-warning">Unassigned</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-secondary">{{ ticket.get_status_display }}</span></td>
+                    <td>{{ ticket.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <form method="post" action="{% url 'assign_engineer' pk=ticket.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'manage_tickets' %}?status={{ current_status }}&assignment={{ current_assignment }}">
+                            <select name="assigned_engineer" class="form-select form-select-sm d-inline-block w-auto me-2">
+                                <option value="">Select Engineer</option>
+                                {% for engineer in engineers %}
+                                <option value="{{ engineer.pk }}" {% if ticket.assigned_engineer == engineer %}selected{% endif %}>
+                                    {{ engineer.get_full_name|default:engineer.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                {% if ticket.assigned_engineer %}Reassign{% else %}Assign{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No tickets found matching the selected filters.</p>
+    {% endif %}
+</div>
+{% endblock %}

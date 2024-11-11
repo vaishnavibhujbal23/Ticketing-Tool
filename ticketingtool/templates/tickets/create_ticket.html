@@ -1,0 +1,39 @@
+{% extends 'tickets/base.html' %}
+{% block title %}Create New Ticket{% endblock title %}Create Ticket
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Create New Ticket</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% load widget_tweaks %}
+                            {% csrf_token %}
+                            {% for field in form %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field|add_class:"form-control" }}
+                                    {% if field.errors %}
+                                        {% for error in field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-primary">Create Ticket</button>
+                            <a href="{% url 'ticket_list' %}" class="btn btn-secondary">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
